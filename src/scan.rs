@@ -1,9 +1,16 @@
 #[rustfmt::skip]
 #[derive(Debug, PartialEq)]
 pub enum TokenKind {
+    // Single-character tokens
     LeftParen, RightParen, LeftBrace, RightBrace,
     Comma, Dot, Semicolon,
     Minus, Plus, Slash, Star,
+
+    // Comparison operators
+    EqualEqual, Equal,
+    GreaterEqual, Greater,
+    LessEqual, Less,
+    BangEqual, Bang
 }
 
 #[derive(Debug, PartialEq)]
@@ -12,7 +19,7 @@ pub struct Token {
 }
 
 pub struct Tokens<'source> {
-    chars: std::str::Chars<'source>,
+    chars: std::iter::Peekable<std::str::Chars<'source>>,
 }
 
 impl<'source> Iterator for Tokens<'source> {
@@ -35,6 +42,14 @@ impl<'source> Iterator for Tokens<'source> {
                     '-' => Minus,
                     '*' => Star,
                     '/' => Slash,
+                    '=' if self.chars.next_if_eq(&'=').is_some() => EqualEqual,
+                    '=' => Equal,
+                    '>' if self.chars.next_if_eq(&'=').is_some() => GreaterEqual,
+                    '>' => Greater,
+                    '<' if self.chars.next_if_eq(&'=').is_some() => LessEqual,
+                    '<' => Less,
+                    '!' if self.chars.next_if_eq(&'=').is_some() => BangEqual,
+                    '!' => Bang,
                     _ => todo!(),
                 },
             })
@@ -43,7 +58,7 @@ impl<'source> Iterator for Tokens<'source> {
 
 pub fn tokenize<'source>(source: &'source str) -> impl Iterator<Item = Token> + 'source {
     Tokens {
-        chars: source.chars(),
+        chars: source.chars().peekable(),
     }
 }
 
@@ -87,6 +102,21 @@ mod test {
         assert_eq!(tokens.next().unwrap(), Token { kind: RightParen });
         assert_eq!(tokens.next().unwrap(), Token { kind: Dot });
         assert_eq!(tokens.next().unwrap(), Token { kind: Star });
+        assert!(tokens.next().is_none());
+    }
+
+    #[test]
+    fn comparison_operators_match_extra_equal() {
+        use TokenKind::*;
+        let source = "=!!=<>==<=";
+        let mut tokens = tokenize(source);
+        assert_eq!(tokens.next().unwrap(), Token { kind: Equal });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Bang });
+        assert_eq!(tokens.next().unwrap(), Token { kind: BangEqual });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Less });
+        assert_eq!(tokens.next().unwrap(), Token { kind: GreaterEqual });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Equal });
+        assert_eq!(tokens.next().unwrap(), Token { kind: LessEqual });
         assert!(tokens.next().is_none());
     }
 }
