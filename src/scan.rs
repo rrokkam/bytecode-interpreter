@@ -10,7 +10,7 @@ pub enum TokenKind {
     EqualEqual, Equal,
     GreaterEqual, Greater,
     LessEqual, Less,
-    BangEqual, Bang
+    BangEqual, Bang,
 }
 
 #[derive(Debug, PartialEq)]
@@ -20,6 +20,12 @@ pub struct Token {
 
 pub struct Tokens<'source> {
     chars: std::iter::Peekable<std::str::Chars<'source>>,
+}
+
+impl<'source> Tokens<'source> {
+    fn next_matches(&mut self, c: char) -> bool {
+        self.chars.next_if_eq(&c).is_some()
+    }
 }
 
 impl<'source> Iterator for Tokens<'source> {
@@ -42,13 +48,13 @@ impl<'source> Iterator for Tokens<'source> {
                     '-' => Minus,
                     '*' => Star,
                     '/' => Slash,
-                    '=' if self.chars.next_if_eq(&'=').is_some() => EqualEqual,
+                    '=' if self.next_matches('=') => EqualEqual,
                     '=' => Equal,
-                    '>' if self.chars.next_if_eq(&'=').is_some() => GreaterEqual,
+                    '>' if self.next_matches('=') => GreaterEqual,
                     '>' => Greater,
-                    '<' if self.chars.next_if_eq(&'=').is_some() => LessEqual,
+                    '<' if self.next_matches('=') => LessEqual,
                     '<' => Less,
-                    '!' if self.chars.next_if_eq(&'=').is_some() => BangEqual,
+                    '!' if self.next_matches('=') => BangEqual,
                     '!' => Bang,
                     _ => todo!(),
                 },
