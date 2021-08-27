@@ -11,13 +11,37 @@ pub struct Token {
     kind: TokenKind,
 }
 
-pub fn tokenize(source: &str) -> Box<dyn Iterator<Item = Token>> {
-    let first = source.chars().next().unwrap_or_default();
-    match first {
-        '(' => Box::new(std::iter::once(Token {
-            kind: TokenKind::LeftParen,
-        })),
-        _ => Box::new(std::iter::empty()),
+pub struct Tokens<'source> {
+    chars: std::str::Chars<'source>,
+}
+
+impl<'source> Iterator for Tokens<'source> {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Token> {
+        use TokenKind::*;
+        self.chars.next().map(|c| Token {
+            kind: match c {
+                '(' => LeftParen,
+                ')' => RightParen,
+                '{' => LeftBrace,
+                '}' => RightBrace,
+                ',' => Comma,
+                '.' => Dot,
+                ';' => Semicolon,
+                '+' => Plus,
+                '-' => Minus,
+                '*' => Star,
+                '/' => Slash,
+                _ => todo!(),
+            },
+        })
+    }
+}
+
+pub fn tokenize<'source>(source: &'source str) -> impl Iterator<Item = Token> + 'source {
+    Tokens {
+        chars: source.chars(),
     }
 }
 
@@ -33,14 +57,22 @@ mod test {
     }
 
     #[test]
-    fn left_paren_produces_single_token() {
-        let source = "(";
+    fn valid_single_characters_produce_single_token() {
+        use TokenKind::*;
+        let source = "(),.;{}/-*+";
         let mut tokens = tokenize(source);
-        assert_eq!(
-            tokens.next().unwrap(),
-            Token {
-                kind: TokenKind::LeftParen
-            }
-        );
+
+        assert_eq!(tokens.next().unwrap(), Token { kind: LeftParen });
+        assert_eq!(tokens.next().unwrap(), Token { kind: RightParen });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Comma });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Dot });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Semicolon });
+        assert_eq!(tokens.next().unwrap(), Token { kind: LeftBrace });
+        assert_eq!(tokens.next().unwrap(), Token { kind: RightBrace });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Slash });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Minus });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Star });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Plus });
+        assert!(tokens.next().is_none());
     }
 }
