@@ -20,22 +20,24 @@ impl<'source> Iterator for Tokens<'source> {
 
     fn next(&mut self) -> Option<Token> {
         use TokenKind::*;
-        self.chars.next().map(|c| Token {
-            kind: match c {
-                '(' => LeftParen,
-                ')' => RightParen,
-                '{' => LeftBrace,
-                '}' => RightBrace,
-                ',' => Comma,
-                '.' => Dot,
-                ';' => Semicolon,
-                '+' => Plus,
-                '-' => Minus,
-                '*' => Star,
-                '/' => Slash,
-                _ => todo!(),
-            },
-        })
+        self.chars
+            .find(|c| !c.is_ascii_whitespace())
+            .map(|c| Token {
+                kind: match c {
+                    '(' => LeftParen,
+                    ')' => RightParen,
+                    '{' => LeftBrace,
+                    '}' => RightBrace,
+                    ',' => Comma,
+                    '.' => Dot,
+                    ';' => Semicolon,
+                    '+' => Plus,
+                    '-' => Minus,
+                    '*' => Star,
+                    '/' => Slash,
+                    _ => todo!(),
+                },
+            })
     }
 }
 
@@ -73,6 +75,13 @@ mod test {
         assert_eq!(tokens.next().unwrap(), Token { kind: Minus });
         assert_eq!(tokens.next().unwrap(), Token { kind: Star });
         assert_eq!(tokens.next().unwrap(), Token { kind: Plus });
+        assert!(tokens.next().is_none());
+    }
+
+    #[test]
+    fn whitespace_is_ignored() {
+        let source = " \n  \t\n\r\n";
+        let mut tokens = tokenize(source);
         assert!(tokens.next().is_none());
     }
 }
