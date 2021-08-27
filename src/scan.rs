@@ -80,8 +80,13 @@ mod test {
 
     #[test]
     fn whitespace_is_ignored() {
-        let source = " \n  \t\n\r\n";
+        use TokenKind::*;
+        let source = " ( ) .\n  *";
         let mut tokens = tokenize(source);
+        assert_eq!(tokens.next().unwrap(), Token { kind: LeftParen });
+        assert_eq!(tokens.next().unwrap(), Token { kind: RightParen });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Dot });
+        assert_eq!(tokens.next().unwrap(), Token { kind: Star });
         assert!(tokens.next().is_none());
     }
 }
