@@ -117,7 +117,7 @@ pub fn tokenize(source: &str) -> impl Iterator<Item = Token> + '_ {
 
 #[cfg(test)]
 mod test {
-    use super::{*, Kind::*};
+    use super::{Kind::*, *};
 
     #[test]
     fn empty() {
