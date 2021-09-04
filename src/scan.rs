@@ -12,7 +12,7 @@ enum Kind {
     LessEqual, Less,
     BangEqual, Bang,
 
-    Number, String,
+    Number, String, Identifier,
 
     Comment,
 
@@ -61,6 +61,7 @@ impl<'source> Tokens<'source> {
             '!' => Bang,
             '"' => self.string(),
             c if c.is_numeric() => self.number(),
+            c if c.is_alphabetic() => self.identifier(),
             _ => Error,
         }
     }
@@ -79,12 +80,17 @@ impl<'source> Tokens<'source> {
         {}
     }
 
-    fn number(&mut self) -> Kind {
+    fn identifier(&mut self) -> Kind {
         while self
             .char_indices
-            .next_if(|(_, c)| c.is_numeric())
+            .next_if(|(_, c)| c.is_alphabetic())
             .is_some()
         {}
+        Kind::Identifier
+    }
+
+    fn number(&mut self) -> Kind {
+        while self.char_indices.next_if(|(_, c)| c.is_numeric()).is_some() {}
         Kind::Number
     }
 
@@ -220,6 +226,18 @@ mod test {
         assert_eq!(tokens.next().unwrap(), Token::new(0, Comment));
         assert_eq!(tokens.next().unwrap(), Token::new(6, Comment));
         assert_eq!(tokens.next().unwrap(), Token::new(12, Number));
+        assert!(tokens.next().is_none());
+    }
+
+    #[test]
+    fn identifier() {
+        let source = "these are all identifiers;";
+        let mut tokens = tokenize(source);
+        assert_eq!(tokens.next().unwrap(), Token::new(0, Identifier));
+        assert_eq!(tokens.next().unwrap(), Token::new(6, Identifier));
+        assert_eq!(tokens.next().unwrap(), Token::new(10, Identifier));
+        assert_eq!(tokens.next().unwrap(), Token::new(14, Identifier));
+        assert_eq!(tokens.next().unwrap(), Token::new(25, Semicolon));
         assert!(tokens.next().is_none());
     }
 }
