@@ -120,14 +120,14 @@ mod test {
     use super::{*, Kind::*};
 
     #[test]
-    fn empty_source_produces_no_tokens() {
+    fn empty() {
         let source = "";
         let mut tokens = tokenize(source);
         assert!(tokens.next().is_none());
     }
 
     #[test]
-    fn valid_single_characters_produce_single_token() {
+    fn single_character() {
         let source = "(),.;{}/-*+";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(0, LeftParen));
@@ -145,7 +145,7 @@ mod test {
     }
 
     #[test]
-    fn whitespace_is_ignored() {
+    fn whitespace() {
         let source = " ( ) .\n  *";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(1, LeftParen));
@@ -156,7 +156,7 @@ mod test {
     }
 
     #[test]
-    fn comparison_operators_match_extra_equal() {
+    fn comparison() {
         let source = "===!!=<>==<=>";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(0, EqualEqual));
@@ -172,7 +172,7 @@ mod test {
     }
 
     #[test]
-    fn numbers_are_grouped() {
+    fn number() {
         let source = "123 (534)";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(0, Number));
