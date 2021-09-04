@@ -1,6 +1,6 @@
 #[rustfmt::skip]
 #[derive(Debug, PartialEq)]
-pub enum Kind {
+enum Kind {
     // Single-character tokens
     LeftParen, RightParen, LeftBrace, RightBrace,
     Comma, Dot, Semicolon,
