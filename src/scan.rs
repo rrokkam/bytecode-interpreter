@@ -72,7 +72,11 @@ impl<'source> Tokens<'source> {
     }
 
     fn next_until_eq(&mut self, expected: char) {
-        while self.char_indices.next_if(|&(_, c)| c != expected).is_some() {}
+        while self
+            .char_indices
+            .next_if(|actual| actual.1 != expected)
+            .is_some()
+        {}
     }
 
     fn number(&mut self) -> Kind {
