@@ -14,6 +14,8 @@ enum Kind {
 
     Number, String,
 
+    Comment,
+
     Error,
 }
 
@@ -47,6 +49,7 @@ impl<'source> Tokens<'source> {
             '+' => Plus,
             '-' => Minus,
             '*' => Star,
+            '/' if self.next_matches('/') => self.comment(),
             '/' => Slash,
             '=' if self.next_matches('=') => EqualEqual,
             '=' => Equal,
@@ -68,6 +71,10 @@ impl<'source> Tokens<'source> {
             .is_some()
     }
 
+    fn next_until_eq(&mut self, expected: char) {
+        while self.char_indices.next_if(|&(_, c)| c != expected).is_some() {}
+    }
+
     fn number(&mut self) -> Kind {
         while self
             .char_indices
@@ -78,12 +85,17 @@ impl<'source> Tokens<'source> {
     }
 
     fn string(&mut self) -> Kind {
-        while self.char_indices.next_if(|&(_, c)| c != '"').is_some() {}
+        self.next_until_eq('"');
         if let Some((_, '"')) = self.char_indices.next() {
             Kind::String
         } else {
             Kind::Error
         }
+    }
+
+    fn comment(&mut self) -> Kind {
+        self.next_until_eq('\n');
+        Kind::Comment
     }
 }
 
@@ -194,6 +206,16 @@ mod test {
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(0, Error));
         assert_eq!(tokens.next().unwrap(), Token::new(1, Error));
+        assert!(tokens.next().is_none());
+    }
+
+    #[test]
+    fn comment() {
+        let source = "//abc\n//1%#\n32";
+        let mut tokens = tokenize(source);
+        assert_eq!(tokens.next().unwrap(), Token::new(0, Comment));
+        assert_eq!(tokens.next().unwrap(), Token::new(6, Comment));
+        assert_eq!(tokens.next().unwrap(), Token::new(12, Number));
         assert!(tokens.next().is_none());
     }
 }
