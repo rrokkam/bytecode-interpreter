@@ -105,7 +105,7 @@ pub fn tokenize(source: &str) -> impl Iterator<Item = Token> + '_ {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::{*, Kind::*};
 
     #[test]
     fn empty_source_produces_no_tokens() {
@@ -116,10 +116,8 @@ mod test {
 
     #[test]
     fn valid_single_characters_produce_single_token() {
-        use Kind::*;
         let source = "(),.;{}/-*+";
         let mut tokens = tokenize(source);
-
         assert_eq!(tokens.next().unwrap(), Token::new(0, LeftParen));
         assert_eq!(tokens.next().unwrap(), Token::new(1, RightParen));
         assert_eq!(tokens.next().unwrap(), Token::new(2, Comma));
@@ -136,7 +134,6 @@ mod test {
 
     #[test]
     fn whitespace_is_ignored() {
-        use Kind::*;
         let source = " ( ) .\n  *";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(1, LeftParen));
@@ -148,7 +145,6 @@ mod test {
 
     #[test]
     fn comparison_operators_match_extra_equal() {
-        use Kind::*;
         let source = "===!!=<>==<=>";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(0, EqualEqual));
@@ -165,7 +161,6 @@ mod test {
 
     #[test]
     fn numbers_are_grouped() {
-        use Kind::*;
         let source = "123 (534)";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(0, Number));
@@ -177,7 +172,6 @@ mod test {
 
     #[test]
     fn terminated_string() {
-        use Kind::*;
         let source = " \"());3.=\"! ";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(1, String));
@@ -187,7 +181,6 @@ mod test {
 
     #[test]
     fn unterminated_string() {
-        use Kind::*;
         let source = " !\")(;3.=";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(1, Bang));
@@ -197,7 +190,6 @@ mod test {
 
     #[test]
     fn unrecognized_character() {
-        use Kind::*;
         let source = "\\%";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(0, Error));
