@@ -17,13 +17,13 @@ enum Kind {
 
 #[derive(Debug, PartialEq)]
 pub struct Token {
-    kind: Kind,
     position: usize,
+    kind: Kind,
 }
 
 impl Token {
-    fn new(kind: Kind, position: usize) -> Token {
-        Token { kind, position }
+    fn new(position: usize, kind: Kind) -> Token {
+        Token { position, kind }
     }
 }
 
@@ -81,7 +81,7 @@ impl<'source> Iterator for Tokens<'source> {
     fn next(&mut self) -> Option<Token> {
         self.char_indices
             .find(|(_, c)| !c.is_ascii_whitespace())
-            .map(|(i, c)| Token::new(self.kind(c), i))
+            .map(|(i, c)| Token::new(i, self.kind(c)))
     }
 }
 
@@ -108,17 +108,17 @@ mod test {
         let source = "(),.;{}/-*+";
         let mut tokens = tokenize(source);
 
-        assert_eq!(tokens.next().unwrap(), Token::new(LeftParen, 0));
-        assert_eq!(tokens.next().unwrap(), Token::new(RightParen, 1));
-        assert_eq!(tokens.next().unwrap(), Token::new(Comma, 2));
-        assert_eq!(tokens.next().unwrap(), Token::new(Dot, 3));
-        assert_eq!(tokens.next().unwrap(), Token::new(Semicolon, 4));
-        assert_eq!(tokens.next().unwrap(), Token::new(LeftBrace, 5));
-        assert_eq!(tokens.next().unwrap(), Token::new(RightBrace, 6));
-        assert_eq!(tokens.next().unwrap(), Token::new(Slash, 7));
-        assert_eq!(tokens.next().unwrap(), Token::new(Minus, 8));
-        assert_eq!(tokens.next().unwrap(), Token::new(Star, 9));
-        assert_eq!(tokens.next().unwrap(), Token::new(Plus, 10));
+        assert_eq!(tokens.next().unwrap(), Token::new(0, LeftParen));
+        assert_eq!(tokens.next().unwrap(), Token::new(1, RightParen));
+        assert_eq!(tokens.next().unwrap(), Token::new(2, Comma));
+        assert_eq!(tokens.next().unwrap(), Token::new(3, Dot));
+        assert_eq!(tokens.next().unwrap(), Token::new(4, Semicolon));
+        assert_eq!(tokens.next().unwrap(), Token::new(5, LeftBrace));
+        assert_eq!(tokens.next().unwrap(), Token::new(6, RightBrace));
+        assert_eq!(tokens.next().unwrap(), Token::new(7, Slash));
+        assert_eq!(tokens.next().unwrap(), Token::new(8, Minus));
+        assert_eq!(tokens.next().unwrap(), Token::new(9, Star));
+        assert_eq!(tokens.next().unwrap(), Token::new(10, Plus));
         assert!(tokens.next().is_none());
     }
 
@@ -127,10 +127,10 @@ mod test {
         use Kind::*;
         let source = " ( ) .\n  *";
         let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(LeftParen, 1));
-        assert_eq!(tokens.next().unwrap(), Token::new(RightParen, 3));
-        assert_eq!(tokens.next().unwrap(), Token::new(Dot, 5));
-        assert_eq!(tokens.next().unwrap(), Token::new(Star, 9));
+        assert_eq!(tokens.next().unwrap(), Token::new(1, LeftParen));
+        assert_eq!(tokens.next().unwrap(), Token::new(3, RightParen));
+        assert_eq!(tokens.next().unwrap(), Token::new(5, Dot));
+        assert_eq!(tokens.next().unwrap(), Token::new(9, Star));
         assert!(tokens.next().is_none());
     }
 
@@ -139,15 +139,15 @@ mod test {
         use Kind::*;
         let source = "===!!=<>==<=>";
         let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(EqualEqual, 0));
-        assert_eq!(tokens.next().unwrap(), Token::new(Equal, 2));
-        assert_eq!(tokens.next().unwrap(), Token::new(Bang, 3));
-        assert_eq!(tokens.next().unwrap(), Token::new(BangEqual, 4));
-        assert_eq!(tokens.next().unwrap(), Token::new(Less, 6));
-        assert_eq!(tokens.next().unwrap(), Token::new(GreaterEqual, 7));
-        assert_eq!(tokens.next().unwrap(), Token::new(Equal, 9));
-        assert_eq!(tokens.next().unwrap(), Token::new(LessEqual, 10));
-        assert_eq!(tokens.next().unwrap(), Token::new(Greater, 12));
+        assert_eq!(tokens.next().unwrap(), Token::new(0, EqualEqual));
+        assert_eq!(tokens.next().unwrap(), Token::new(2, Equal));
+        assert_eq!(tokens.next().unwrap(), Token::new(3, Bang));
+        assert_eq!(tokens.next().unwrap(), Token::new(4, BangEqual));
+        assert_eq!(tokens.next().unwrap(), Token::new(6, Less));
+        assert_eq!(tokens.next().unwrap(), Token::new(7, GreaterEqual));
+        assert_eq!(tokens.next().unwrap(), Token::new(9, Equal));
+        assert_eq!(tokens.next().unwrap(), Token::new(10, LessEqual));
+        assert_eq!(tokens.next().unwrap(), Token::new(12, Greater));
         assert!(tokens.next().is_none());
     }
 
@@ -156,10 +156,10 @@ mod test {
         use Kind::*;
         let source = "123 (534)";
         let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(Number, 0));
-        assert_eq!(tokens.next().unwrap(), Token::new(LeftParen, 4));
-        assert_eq!(tokens.next().unwrap(), Token::new(Number, 5));
-        assert_eq!(tokens.next().unwrap(), Token::new(RightParen, 8));
+        assert_eq!(tokens.next().unwrap(), Token::new(0, Number));
+        assert_eq!(tokens.next().unwrap(), Token::new(4, LeftParen));
+        assert_eq!(tokens.next().unwrap(), Token::new(5, Number));
+        assert_eq!(tokens.next().unwrap(), Token::new(8, RightParen));
         assert!(tokens.next().is_none());
     }
 }
