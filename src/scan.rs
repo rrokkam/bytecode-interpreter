@@ -12,7 +12,9 @@ enum Kind {
     LessEqual, Less,
     BangEqual, Bang,
 
-    Number,
+    Number, String,
+
+    Error,
 }
 
 #[derive(Debug, PartialEq)]
@@ -54,6 +56,7 @@ impl<'source> Tokens<'source> {
             '<' => Less,
             '!' if self.next_matches('=') => BangEqual,
             '!' => Bang,
+            '"' => self.string(),
             c if c.is_ascii_digit() => self.number(),
             _ => todo!(),
         }
@@ -72,6 +75,15 @@ impl<'source> Tokens<'source> {
             .is_some()
         {}
         Kind::Number
+    }
+
+    fn string(&mut self) -> Kind {
+        while self.char_indices.next_if(|&(_, c)| c != '"').is_some() {}
+        if let Some((_, '"')) = self.char_indices.next() {
+            Kind::String
+        } else {
+            Kind::Error
+        }
     }
 }
 
@@ -160,6 +172,26 @@ mod test {
         assert_eq!(tokens.next().unwrap(), Token::new(4, LeftParen));
         assert_eq!(tokens.next().unwrap(), Token::new(5, Number));
         assert_eq!(tokens.next().unwrap(), Token::new(8, RightParen));
+        assert!(tokens.next().is_none());
+    }
+
+    #[test]
+    fn terminated_string() {
+        use Kind::*;
+        let source = " \"());3.=\"! ";
+        let mut tokens = tokenize(source);
+        assert_eq!(tokens.next().unwrap(), Token::new(1, String));
+        assert_eq!(tokens.next().unwrap(), Token::new(10, Bang));
+        assert!(tokens.next().is_none());
+    }
+
+    #[test]
+    fn unterminated_string() {
+        use Kind::*;
+        let source = " !\")(;3.=";
+        let mut tokens = tokenize(source);
+        assert_eq!(tokens.next().unwrap(), Token::new(1, Bang));
+        assert_eq!(tokens.next().unwrap(), Token::new(2, Error));
         assert!(tokens.next().is_none());
     }
 }
