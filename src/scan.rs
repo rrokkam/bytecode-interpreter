@@ -1,6 +1,6 @@
 #[rustfmt::skip]
 #[derive(Debug, PartialEq)]
-pub enum TokenKind {
+pub enum Kind {
     // Single-character tokens
     LeftParen, RightParen, LeftBrace, RightBrace,
     Comma, Dot, Semicolon,
@@ -17,12 +17,12 @@ pub enum TokenKind {
 
 #[derive(Debug, PartialEq)]
 pub struct Token {
-    kind: TokenKind,
+    kind: Kind,
     indices: std::ops::RangeInclusive<usize>,
 }
 
 impl Token {
-    fn new(kind: TokenKind, indices: std::ops::RangeInclusive<usize>) -> Token {
+    fn new(kind: Kind, indices: std::ops::RangeInclusive<usize>) -> Token {
         Token { kind, indices }
     }
 }
@@ -33,8 +33,8 @@ pub struct Tokens<'source> {
 }
 
 impl<'source> Tokens<'source> {
-    fn kind(&mut self, next: char) -> TokenKind {
-        use TokenKind::*;
+    fn kind(&mut self, next: char) -> Kind {
+        use Kind::*;
         match next {
             '(' => LeftParen,
             ')' => RightParen,
@@ -68,7 +68,7 @@ impl<'source> Tokens<'source> {
         next.is_some()
     }
 
-    fn number(&mut self, _: char) -> TokenKind {
+    fn number(&mut self, _: char) -> Kind {
         while self
             .char_indices
             .next_if(|(_, c)| c.is_ascii_digit())
@@ -76,7 +76,7 @@ impl<'source> Tokens<'source> {
         {
             self.end_index += 1
         }
-        TokenKind::Number
+        Kind::Number
     }
 }
 
@@ -119,7 +119,7 @@ mod test {
 
     #[test]
     fn valid_single_characters_produce_single_token() {
-        use TokenKind::*;
+        use Kind::*;
         let source = "(),.;{}/-*+";
         let mut tokens = tokenize(source);
 
@@ -139,7 +139,7 @@ mod test {
 
     #[test]
     fn whitespace_is_ignored() {
-        use TokenKind::*;
+        use Kind::*;
         let source = " ( ) .\n  *";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(LeftParen, 1..=1));
@@ -151,7 +151,7 @@ mod test {
 
     #[test]
     fn comparison_operators_match_extra_equal() {
-        use TokenKind::*;
+        use Kind::*;
         let source = "===!!=<>==<=>";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(EqualEqual, 0..=1));
@@ -168,7 +168,7 @@ mod test {
 
     #[test]
     fn numbers_are_grouped() {
-        use TokenKind::*;
+        use Kind::*;
         let source = "123 (534)";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(Number, 0..=2));
