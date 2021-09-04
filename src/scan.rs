@@ -58,7 +58,7 @@ impl<'source> Tokens<'source> {
             '!' => Bang,
             '"' => self.string(),
             c if c.is_ascii_digit() => self.number(),
-            _ => todo!(),
+            _ => Error,
         }
     }
 
@@ -192,6 +192,16 @@ mod test {
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(1, Bang));
         assert_eq!(tokens.next().unwrap(), Token::new(2, Error));
+        assert!(tokens.next().is_none());
+    }
+
+    #[test]
+    fn unrecognized_character() {
+        use Kind::*;
+        let source = "\\%";
+        let mut tokens = tokenize(source);
+        assert_eq!(tokens.next().unwrap(), Token::new(0, Error));
+        assert_eq!(tokens.next().unwrap(), Token::new(1, Error));
         assert!(tokens.next().is_none());
     }
 }
