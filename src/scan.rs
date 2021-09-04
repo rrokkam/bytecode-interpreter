@@ -60,7 +60,7 @@ impl<'source> Tokens<'source> {
             '!' if self.next_matches('=') => BangEqual,
             '!' => Bang,
             '"' => self.string(),
-            c if c.is_ascii_digit() => self.number(),
+            c if c.is_numeric() => self.number(),
             _ => Error,
         }
     }
@@ -82,7 +82,7 @@ impl<'source> Tokens<'source> {
     fn number(&mut self) -> Kind {
         while self
             .char_indices
-            .next_if(|(_, c)| c.is_ascii_digit())
+            .next_if(|(_, c)| c.is_numeric())
             .is_some()
         {}
         Kind::Number
@@ -108,7 +108,7 @@ impl<'source> Iterator for Tokens<'source> {
 
     fn next(&mut self) -> Option<Token> {
         self.char_indices
-            .find(|(_, c)| !c.is_ascii_whitespace())
+            .find(|(_, c)| !c.is_whitespace())
             .map(|(i, c)| Token::new(i, self.kind(c)))
     }
 }
