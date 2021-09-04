@@ -54,7 +54,7 @@ impl<'source> Tokens<'source> {
             '<' => Less,
             '!' if self.next_matches('=') => BangEqual,
             '!' => Bang,
-            c if c.is_ascii_digit() => self.number(c),
+            c if c.is_ascii_digit() => self.number(),
             _ => todo!(),
         }
     }
@@ -65,7 +65,7 @@ impl<'source> Tokens<'source> {
             .is_some()
     }
 
-    fn number(&mut self, _: char) -> Kind {
+    fn number(&mut self) -> Kind {
         while self
             .char_indices
             .next_if(|(_, c)| c.is_ascii_digit())
