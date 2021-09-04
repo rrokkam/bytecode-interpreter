@@ -152,7 +152,7 @@ mod test {
     #[test]
     fn comparison_operators_match_extra_equal() {
         use TokenKind::*;
-        let source = "===!!=<>==<=";
+        let source = "===!!=<>==<=>";
         let mut tokens = tokenize(source);
         assert_eq!(tokens.next().unwrap(), Token::new(EqualEqual, 0..=1));
         assert_eq!(tokens.next().unwrap(), Token::new(Equal, 2..=2));
@@ -162,6 +162,7 @@ mod test {
         assert_eq!(tokens.next().unwrap(), Token::new(GreaterEqual, 7..=8));
         assert_eq!(tokens.next().unwrap(), Token::new(Equal, 9..=9));
         assert_eq!(tokens.next().unwrap(), Token::new(LessEqual, 10..=11));
+        assert_eq!(tokens.next().unwrap(), Token::new(Greater, 12..=12));
         assert!(tokens.next().is_none());
     }
 
