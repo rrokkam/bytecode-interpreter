@@ -334,4 +334,15 @@ mod test {
         assert_eq!(tokens.next().unwrap(), Token::new(24, Identifier));
         assert!(tokens.next().is_none());
     }
+
+    #[test]
+    fn keyword_substrings_and_superstrings() {
+        let source = "an fun classy nile";
+        let mut tokens = tokenize(source);
+        assert_eq!(tokens.next().unwrap(), Token::new(0, Identifier));
+        assert_eq!(tokens.next().unwrap(), Token::new(3, Identifier));
+        assert_eq!(tokens.next().unwrap(), Token::new(7, Identifier));
+        assert_eq!(tokens.next().unwrap(), Token::new(14, Identifier));
+        assert!(tokens.next().is_none());
+    }
 }
