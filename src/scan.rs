@@ -47,7 +47,7 @@ pub struct Tokens<'source> {
 }
 
 impl<'source> Tokens<'source> {
-    fn kind(&mut self, next: char) -> Kind {
+    fn scan_token(&mut self, next: char) -> Kind {
         use Kind::*;
         match next {
             '(' => LeftParen,
@@ -173,7 +173,7 @@ impl<'source> Iterator for Tokens<'source> {
     fn next(&mut self) -> Option<Token> {
         self.char_indices
             .find(|(_, c)| !c.is_whitespace())
-            .map(|(i, c)| Token::new(i, self.kind(c)))
+            .map(|(i, c)| Token::new(i, self.scan_token(c)))
     }
 }
 
