@@ -60,8 +60,8 @@ impl<'source> Tokens<'source> {
             '+' => Plus,
             '-' => Minus,
             '*' => Star,
-            '/' if self.next_matches('/') => self.comment(),
             '/' => Slash,
+            '#' => self.comment(),
             '=' if self.next_matches('=') => EqualEqual,
             '=' => Equal,
             '>' if self.next_matches('=') => GreaterEqual,
@@ -284,9 +284,9 @@ mod test {
 
     #[test]
     fn comment() {
-        let source = "//abc\n//1%#\n32";
+        let source = "#abc\n#1%\n32";
         let actual = tokenize(source);
-        let expected = [(0, Comment), (6, Comment), (12, Number)];
+        let expected = [(0, Comment), (5, Comment), (9, Number)];
         assert_equality(actual, expected)
     }
 
