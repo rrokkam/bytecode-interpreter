@@ -121,10 +121,8 @@ impl<'source> Tokens<'source> {
     }
 
     fn try_keyword(&mut self, keyword: &str, keyword_kind: Kind) -> Kind {
-        let identifier_starts_with_keyword = keyword
-            .chars()
-            .find(|&expected| !self.next_matches(expected))
-            .is_none();
+        let identifier_starts_with_keyword =
+            keyword.chars().all(|expected| self.next_matches(expected));
         let keyword_is_not_prefix_of_identifier = self
             .char_indices
             .peek()
