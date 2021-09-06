@@ -187,6 +187,17 @@ pub fn tokenize(source: &str) -> impl Iterator<Item = Token> + '_ {
 mod test {
     use super::{Kind::*, *};
 
+    fn assert_equality(
+        actual: impl Iterator<Item = Token>,
+        expected: impl IntoIterator<Item = Token>,
+    ) {
+        // this method could be replaced by `assert_eq!(actual, expected)`,
+        // but asserting element-wise like this gives a cleaner error message.
+        for (actual, expected) in actual.zip(expected) {
+            assert_eq!(actual, expected);
+        }
+    }
+
     #[test]
     fn empty() {
         let source = "";
@@ -197,152 +208,175 @@ mod test {
     #[test]
     fn single_character() {
         let source = "(),.;{}/-*+";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, LeftParen));
-        assert_eq!(tokens.next().unwrap(), Token::new(1, RightParen));
-        assert_eq!(tokens.next().unwrap(), Token::new(2, Comma));
-        assert_eq!(tokens.next().unwrap(), Token::new(3, Dot));
-        assert_eq!(tokens.next().unwrap(), Token::new(4, Semicolon));
-        assert_eq!(tokens.next().unwrap(), Token::new(5, LeftBrace));
-        assert_eq!(tokens.next().unwrap(), Token::new(6, RightBrace));
-        assert_eq!(tokens.next().unwrap(), Token::new(7, Slash));
-        assert_eq!(tokens.next().unwrap(), Token::new(8, Minus));
-        assert_eq!(tokens.next().unwrap(), Token::new(9, Star));
-        assert_eq!(tokens.next().unwrap(), Token::new(10, Plus));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, LeftParen),
+            Token::new(1, RightParen),
+            Token::new(2, Comma),
+            Token::new(3, Dot),
+            Token::new(4, Semicolon),
+            Token::new(5, LeftBrace),
+            Token::new(6, RightBrace),
+            Token::new(7, Slash),
+            Token::new(8, Minus),
+            Token::new(9, Star),
+            Token::new(10, Plus),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn whitespace() {
         let source = " ( ) .\n  *";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(1, LeftParen));
-        assert_eq!(tokens.next().unwrap(), Token::new(3, RightParen));
-        assert_eq!(tokens.next().unwrap(), Token::new(5, Dot));
-        assert_eq!(tokens.next().unwrap(), Token::new(9, Star));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(1, LeftParen),
+            Token::new(3, RightParen),
+            Token::new(5, Dot),
+            Token::new(9, Star),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn comparison() {
         let source = "===!!=<>==<=>";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, EqualEqual));
-        assert_eq!(tokens.next().unwrap(), Token::new(2, Equal));
-        assert_eq!(tokens.next().unwrap(), Token::new(3, Bang));
-        assert_eq!(tokens.next().unwrap(), Token::new(4, BangEqual));
-        assert_eq!(tokens.next().unwrap(), Token::new(6, Less));
-        assert_eq!(tokens.next().unwrap(), Token::new(7, GreaterEqual));
-        assert_eq!(tokens.next().unwrap(), Token::new(9, Equal));
-        assert_eq!(tokens.next().unwrap(), Token::new(10, LessEqual));
-        assert_eq!(tokens.next().unwrap(), Token::new(12, Greater));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, EqualEqual),
+            Token::new(2, Equal),
+            Token::new(3, Bang),
+            Token::new(4, BangEqual),
+            Token::new(6, Less),
+            Token::new(7, GreaterEqual),
+            Token::new(9, Equal),
+            Token::new(10, LessEqual),
+            Token::new(12, Greater),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn number() {
         let source = "123 (534)";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, Number));
-        assert_eq!(tokens.next().unwrap(), Token::new(4, LeftParen));
-        assert_eq!(tokens.next().unwrap(), Token::new(5, Number));
-        assert_eq!(tokens.next().unwrap(), Token::new(8, RightParen));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, Number),
+            Token::new(4, LeftParen),
+            Token::new(5, Number),
+            Token::new(8, RightParen),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn terminated_string() {
         let source = " \"());3.=\"! ";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(1, String));
-        assert_eq!(tokens.next().unwrap(), Token::new(10, Bang));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(1, String),
+            Token::new(10, Bang),
+        ];
+        assert_equality(actual, expected)
+
     }
 
     #[test]
     fn unterminated_string() {
         let source = " !\")(;3.=";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(1, Bang));
-        assert_eq!(tokens.next().unwrap(), Token::new(2, Error));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(1, Bang),
+            Token::new(2, Error),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn unrecognized_character() {
         let source = "\\%";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, Error));
-        assert_eq!(tokens.next().unwrap(), Token::new(1, Error));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, Error),
+            Token::new(1, Error),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn comment() {
         let source = "//abc\n//1%#\n32";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, Comment));
-        assert_eq!(tokens.next().unwrap(), Token::new(6, Comment));
-        assert_eq!(tokens.next().unwrap(), Token::new(12, Number));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, Comment),
+            Token::new(6, Comment),
+            Token::new(12, Number),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn identifier() {
         let source = "these are all identifiers;";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(6, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(10, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(14, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(25, Semicolon));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, Identifier),
+            Token::new(6, Identifier),
+            Token::new(10, Identifier),
+            Token::new(14, Identifier),
+            Token::new(25, Semicolon),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn keywords() {
         let source =
             "and or true false if else for while class nil super this var function print return";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, And));
-        assert_eq!(tokens.next().unwrap(), Token::new(4, Or));
-        assert_eq!(tokens.next().unwrap(), Token::new(7, True));
-        assert_eq!(tokens.next().unwrap(), Token::new(12, False));
-        assert_eq!(tokens.next().unwrap(), Token::new(18, If));
-        assert_eq!(tokens.next().unwrap(), Token::new(21, Else));
-        assert_eq!(tokens.next().unwrap(), Token::new(26, For));
-        assert_eq!(tokens.next().unwrap(), Token::new(30, While));
-
-        assert_eq!(tokens.next().unwrap(), Token::new(36, Class));
-        assert_eq!(tokens.next().unwrap(), Token::new(42, Nil));
-        assert_eq!(tokens.next().unwrap(), Token::new(46, Super));
-        assert_eq!(tokens.next().unwrap(), Token::new(52, This));
-        assert_eq!(tokens.next().unwrap(), Token::new(57, Var));
-
-        assert_eq!(tokens.next().unwrap(), Token::new(61, Function));
-        assert_eq!(tokens.next().unwrap(), Token::new(70, Print));
-        assert_eq!(tokens.next().unwrap(), Token::new(76, Return));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, And),
+            Token::new(4, Or),
+            Token::new(7, True),
+            Token::new(12, False),
+            Token::new(18, If),
+            Token::new(21, Else),
+            Token::new(26, For),
+            Token::new(30, While),
+            Token::new(36, Class),
+            Token::new(42, Nil),
+            Token::new(46, Super),
+            Token::new(52, This),
+            Token::new(57, Var),
+            Token::new(61, Function),
+            Token::new(70, Print),
+            Token::new(76, Return),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn identifier_or_keyword() {
         let source = "fidentifier tidentifier uidentifier";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(12, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(24, Identifier));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, Identifier),
+            Token::new(12, Identifier),
+            Token::new(24, Identifier),
+        ];
+        assert_equality(actual, expected)
     }
 
     #[test]
     fn keyword_substrings_and_superstrings() {
         let source = "an fun classy nile";
-        let mut tokens = tokenize(source);
-        assert_eq!(tokens.next().unwrap(), Token::new(0, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(3, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(7, Identifier));
-        assert_eq!(tokens.next().unwrap(), Token::new(14, Identifier));
-        assert!(tokens.next().is_none());
+        let actual = tokenize(source);
+        let expected = [
+            Token::new(0, Identifier),
+            Token::new(3, Identifier),
+            Token::new(7, Identifier),
+            Token::new(14, Identifier),
+        ];
+        assert_equality(actual, expected)
     }
 }
