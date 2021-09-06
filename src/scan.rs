@@ -292,15 +292,9 @@ mod test {
 
     #[test]
     fn identifier() {
-        let source = "these are all identifiers;";
+        let source = "these are identifiers";
         let actual = tokenize(source);
-        let expected = [
-            (0, Identifier),
-            (6, Identifier),
-            (10, Identifier),
-            (14, Identifier),
-            (25, Semicolon),
-        ];
+        let expected = [(0, Identifier), (6, Identifier), (10, Identifier)];
         assert_equality(actual, expected)
     }
 
