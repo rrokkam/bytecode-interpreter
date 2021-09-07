@@ -213,27 +213,22 @@ pub fn tokenize(source: &str) -> impl Iterator<Item = Token> + '_ {
 mod test {
     use super::{KeywordKind::*, Kind::*, *};
 
-    fn assert_equality(
-        actual: impl Iterator<Item = Token>,
-        expected: impl IntoIterator<Item = (usize, Kind)>,
-    ) {
+    fn assert_equality(input: &str, expected: impl IntoIterator<Item = (usize, Kind)>) {
         // Asserting element-wise results in cleaner error messages.
-        for (actual, expected) in actual.zip(expected) {
+        for (actual, expected) in tokenize(input).zip(expected) {
             assert_eq!(actual, Token::new(expected.0, expected.1));
         }
     }
 
     #[test]
     fn empty() {
-        let source = "";
-        let mut tokens = tokenize(source);
-        assert!(tokens.next().is_none());
+        let input = "";
+        assert_equality(input, std::iter::empty())
     }
 
     #[test]
     fn single_character() {
-        let source = "(),.;{}/-*+";
-        let actual = tokenize(source);
+        let input = "(),.;{}/-*+";
         let expected = [
             (0, LeftParen),
             (1, RightParen),
@@ -247,21 +242,19 @@ mod test {
             (9, Star),
             (10, Plus),
         ];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn whitespace() {
-        let source = " ( ) .\n  *";
-        let actual = tokenize(source);
+        let input = " ( ) .\n  *";
         let expected = [(1, LeftParen), (3, RightParen), (5, Dot), (9, Star)];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn comparison() {
-        let source = "===!!=<>==<=>";
-        let actual = tokenize(source);
+        let input = "===!!=<>==<=>";
         let expected = [
             (0, EqualEqual),
             (2, Equal),
@@ -273,62 +266,55 @@ mod test {
             (10, LessEqual),
             (12, Greater),
         ];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn number() {
-        let source = "123 (534)";
-        let actual = tokenize(source);
+        let input = "123 (534)";
         let expected = [(0, Number), (4, LeftParen), (5, Number), (8, RightParen)];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn terminated_string() {
-        let source = " \"());3.=\"! ";
-        let actual = tokenize(source);
+        let input = " \"());3.=\"! ";
         let expected = [(1, String), (10, Bang)];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn unterminated_string() {
-        let source = " !\")(;3.=";
-        let actual = tokenize(source);
+        let input = " !\")(;3.=";
         let expected = [(1, Bang), (2, Error)];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn unrecognized_character() {
-        let source = "\\%";
-        let actual = tokenize(source);
+        let input = "\\%";
         let expected = [(0, Error), (1, Error)];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn comment() {
-        let source = "#abc\n#1%\n32";
-        let actual = tokenize(source);
+        let input = "#abc\n#1%\n32";
         let expected = [(0, Comment), (5, Comment), (9, Number)];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn identifier() {
-        let source = "these are identifiers";
-        let actual = tokenize(source);
+        let input = "these are identifiers";
         let expected = [(0, Identifier), (6, Identifier), (10, Identifier)];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn keywords() {
-        let source =
+        let input =
             "and or true false if else for while class nil super this var function print return";
-        let actual = tokenize(source);
         let expected = [
             (0, Keyword(And)),
             (4, Keyword(Or)),
@@ -347,27 +333,25 @@ mod test {
             (70, Keyword(Print)),
             (76, Keyword(Return)),
         ];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn identifier_or_keyword() {
-        let source = "fidentifier tidentifier uidentifier";
-        let actual = tokenize(source);
+        let input = "fidentifier tidentifier uidentifier";
         let expected = [(0, Identifier), (12, Identifier), (24, Identifier)];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 
     #[test]
     fn keyword_substrings_and_superstrings() {
-        let source = "an fun classy nile";
-        let actual = tokenize(source);
+        let input = "an fun classy nile";
         let expected = [
             (0, Identifier),
             (3, Identifier),
             (7, Identifier),
             (14, Identifier),
         ];
-        assert_equality(actual, expected)
+        assert_equality(input, expected)
     }
 }
