@@ -1,3 +1,5 @@
+use std::fmt::{self, Display};
+
 #[rustfmt::skip]
 #[derive(Debug, PartialEq)]
 enum Kind {
@@ -34,6 +36,31 @@ enum KeywordKind {
 
     // Function-related keywords
     Function, Print, Return,
+}
+
+impl Display for KeywordKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use KeywordKind::*;
+        let keyword_string = match self {
+            And => "and",
+            Or => "or",
+            True => "true",
+            False => "false",
+            If => "if",
+            Else => "else",
+            For => "for",
+            While => "while",
+            Class => "class",
+            Nil => "nil",
+            Super => "super",
+            This => "this",
+            Var => "var",
+            Function => "function",
+            Print => "print",
+            Return => "return",
+        };
+        write!(f, "{}", keyword_string)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -100,35 +127,38 @@ impl<'source> Tokens<'source> {
     fn identifier_or_keyword(&mut self, current: char) -> Kind {
         use KeywordKind::*;
         match current {
-            'a' => self.try_keyword("nd", And),
-            'c' => self.try_keyword("lass", Class),
-            'e' => self.try_keyword("lse", Else),
+            'a' => self.try_keyword(And),
+            'c' => self.try_keyword(Class),
+            'e' => self.try_keyword(Else),
             'f' => match self.char_indices.peek() {
-                Some((_, 'a')) => self.try_keyword("alse", False),
-                Some((_, 'o')) => self.try_keyword("or", For),
-                Some((_, 'u')) => self.try_keyword("unction", Function),
+                Some((_, 'a')) => self.try_keyword(False),
+                Some((_, 'o')) => self.try_keyword(For),
+                Some((_, 'u')) => self.try_keyword(Function),
                 _ => self.identifier(),
             },
-            'i' => self.try_keyword("f", If),
-            'n' => self.try_keyword("il", Nil),
-            'o' => self.try_keyword("r", Or),
-            'p' => self.try_keyword("rint", Print),
-            'r' => self.try_keyword("eturn", Return),
-            's' => self.try_keyword("uper", Super),
+            'i' => self.try_keyword(If),
+            'n' => self.try_keyword(Nil),
+            'o' => self.try_keyword(Or),
+            'p' => self.try_keyword(Print),
+            'r' => self.try_keyword(Return),
+            's' => self.try_keyword(Super),
             't' => match self.char_indices.peek() {
-                Some((_, 'h')) => self.try_keyword("his", This),
-                Some((_, 'r')) => self.try_keyword("rue", True),
+                Some((_, 'h')) => self.try_keyword(This),
+                Some((_, 'r')) => self.try_keyword(True),
                 _ => self.identifier(),
             },
-            'v' => self.try_keyword("ar", Var),
-            'w' => self.try_keyword("hile", While),
+            'v' => self.try_keyword(Var),
+            'w' => self.try_keyword(While),
             _ => self.identifier(),
         }
     }
 
-    fn try_keyword(&mut self, keyword: &str, kind: KeywordKind) -> Kind {
-        let identifier_starts_with_keyword =
-            keyword.chars().all(|expected| self.next_matches(expected));
+    fn try_keyword(&mut self, kind: KeywordKind) -> Kind {
+        let identifier_starts_with_keyword = kind
+            .to_string()
+            .chars()
+            .skip(1)
+            .all(|expected| self.next_matches(expected));
         let keyword_is_not_prefix_of_identifier = self
             .char_indices
             .peek()
