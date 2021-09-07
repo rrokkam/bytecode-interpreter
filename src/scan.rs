@@ -250,8 +250,8 @@ mod test {
 
     #[test]
     fn whitespace() {
-        let input = " ( ) .\n  *";
-        let expected = vec![(1, LeftParen), (3, RightParen), (5, Dot), (9, Star)];
+        let input = " ( .\n  > =";
+        let expected = vec![(1, LeftParen), (3, Dot), (7, Greater), (9, Equal)];
         check(input, expected)
     }
 
