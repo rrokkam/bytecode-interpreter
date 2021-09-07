@@ -145,11 +145,8 @@ impl<'source> Tokens<'source> {
             'w' => While,
             _ => return self.identifier(),
         };
-        self.try_keyword(candidate_keyword)
-    }
 
-    fn try_keyword(&mut self, kind: KeywordKind) -> Kind {
-        let identifier_starts_with_keyword = kind
+        let identifier_starts_with_keyword = candidate_keyword
             .to_string()
             .chars()
             .skip(1)
@@ -161,7 +158,7 @@ impl<'source> Tokens<'source> {
             .is_none();
 
         if identifier_starts_with_keyword && keyword_is_not_prefix_of_identifier {
-            Kind::Keyword(kind)
+            Kind::Keyword(candidate_keyword)
         } else {
             self.identifier()
         }
