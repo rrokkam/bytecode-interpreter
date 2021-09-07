@@ -126,31 +126,32 @@ impl<'source> Tokens<'source> {
 
     fn identifier_or_keyword(&mut self, current: char) -> Kind {
         use KeywordKind::*;
-        match current {
-            'a' => self.try_keyword(And),
-            'c' => self.try_keyword(Class),
-            'e' => self.try_keyword(Else),
+        let candidate_keyword = match current {
+            'a' => And,
+            'c' => Class,
+            'e' => Else,
             'f' => match self.char_indices.peek() {
-                Some((_, 'a')) => self.try_keyword(False),
-                Some((_, 'o')) => self.try_keyword(For),
-                Some((_, 'u')) => self.try_keyword(Function),
-                _ => self.identifier(),
+                Some((_, 'a')) => False,
+                Some((_, 'o')) => For,
+                Some((_, 'u')) => Function,
+                _ => return self.identifier(),
             },
-            'i' => self.try_keyword(If),
-            'n' => self.try_keyword(Nil),
-            'o' => self.try_keyword(Or),
-            'p' => self.try_keyword(Print),
-            'r' => self.try_keyword(Return),
-            's' => self.try_keyword(Super),
+            'i' => If,
+            'n' => Nil,
+            'o' => Or,
+            'p' => Print,
+            'r' => Return,
+            's' => Super,
             't' => match self.char_indices.peek() {
-                Some((_, 'h')) => self.try_keyword(This),
-                Some((_, 'r')) => self.try_keyword(True),
-                _ => self.identifier(),
+                Some((_, 'h')) => This,
+                Some((_, 'r')) => True,
+                _ => return self.identifier(),
             },
-            'v' => self.try_keyword(Var),
-            'w' => self.try_keyword(While),
-            _ => self.identifier(),
-        }
+            'v' => Var,
+            'w' => While,
+            _ => return self.identifier(),
+        };
+        self.try_keyword(candidate_keyword)
     }
 
     fn try_keyword(&mut self, kind: KeywordKind) -> Kind {
