@@ -1,7 +1,7 @@
 use std::fmt::{self, Display};
 
 #[rustfmt::skip]
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Kind {
     // Single-character tokens
     LeftParen, RightParen, LeftBrace, RightBrace,
@@ -25,7 +25,7 @@ enum Kind {
 }
 
 #[rustfmt::skip]
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum KeywordKind {
     // Boolean logic-related keywords
     And, Or, True, False,
@@ -213,23 +213,26 @@ pub fn tokenize(source: &str) -> impl Iterator<Item = Token> + '_ {
 mod test {
     use super::{KeywordKind::*, Kind::*, *};
 
-    fn check(input: &str, expected: impl IntoIterator<Item = (usize, Kind)>) {
-        // Asserting element-wise results in cleaner error messages.
-        for (actual, expected) in tokenize(input).zip(expected) {
-            assert_eq!(actual, Token::new(expected.0, expected.1));
-        }
+    fn check(input: &str, expected: Vec<(usize, Kind)>) {
+        assert_eq!(
+            tokenize(input).collect::<Vec<_>>(),
+            expected
+                .iter()
+                .map(|(index, kind)| Token::new(*index, *kind))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
     fn empty() {
         let input = "";
-        check(input, std::iter::empty())
+        check(input, vec![])
     }
 
     #[test]
     fn single_character() {
         let input = "(),.;{}/-*+";
-        let expected = [
+        let expected = vec![
             (0, LeftParen),
             (1, RightParen),
             (2, Comma),
@@ -248,14 +251,14 @@ mod test {
     #[test]
     fn whitespace() {
         let input = " ( ) .\n  *";
-        let expected = [(1, LeftParen), (3, RightParen), (5, Dot), (9, Star)];
+        let expected = vec![(1, LeftParen), (3, RightParen), (5, Dot), (9, Star)];
         check(input, expected)
     }
 
     #[test]
     fn comparison() {
         let input = "===!!=<>==<=>";
-        let expected = [
+        let expected = vec![
             (0, EqualEqual),
             (2, Equal),
             (3, Bang),
@@ -272,42 +275,42 @@ mod test {
     #[test]
     fn number() {
         let input = "123 (534)";
-        let expected = [(0, Number), (4, LeftParen), (5, Number), (8, RightParen)];
+        let expected = vec![(0, Number), (4, LeftParen), (5, Number), (8, RightParen)];
         check(input, expected)
     }
 
     #[test]
     fn terminated_string() {
         let input = " \"());3.=\"! ";
-        let expected = [(1, String), (10, Bang)];
+        let expected = vec![(1, String), (10, Bang)];
         check(input, expected)
     }
 
     #[test]
     fn unterminated_string() {
         let input = " !\")(;3.=";
-        let expected = [(1, Bang), (2, Error)];
+        let expected = vec![(1, Bang), (2, Error)];
         check(input, expected)
     }
 
     #[test]
     fn unrecognized_character() {
         let input = "\\%";
-        let expected = [(0, Error), (1, Error)];
+        let expected = vec![(0, Error), (1, Error)];
         check(input, expected)
     }
 
     #[test]
     fn comment() {
         let input = "#abc\n#1%\n32";
-        let expected = [(0, Comment), (5, Comment), (9, Number)];
+        let expected = vec![(0, Comment), (5, Comment), (9, Number)];
         check(input, expected)
     }
 
     #[test]
     fn identifier() {
         let input = "these are identifiers";
-        let expected = [(0, Identifier), (6, Identifier), (10, Identifier)];
+        let expected = vec![(0, Identifier), (6, Identifier), (10, Identifier)];
         check(input, expected)
     }
 
@@ -315,7 +318,7 @@ mod test {
     fn keywords() {
         let input =
             "and or true false if else for while class nil super this var function print return";
-        let expected = [
+        let expected = vec![
             (0, Keyword(And)),
             (4, Keyword(Or)),
             (7, Keyword(True)),
@@ -339,14 +342,14 @@ mod test {
     #[test]
     fn identifier_or_keyword() {
         let input = "fidentifier tidentifier uidentifier";
-        let expected = [(0, Identifier), (12, Identifier), (24, Identifier)];
+        let expected = vec![(0, Identifier), (12, Identifier), (24, Identifier)];
         check(input, expected)
     }
 
     #[test]
     fn keyword_substrings_and_superstrings() {
         let input = "an fun classy nile";
-        let expected = [
+        let expected = vec![
             (0, Identifier),
             (3, Identifier),
             (7, Identifier),
