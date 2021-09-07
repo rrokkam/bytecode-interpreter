@@ -213,7 +213,7 @@ pub fn tokenize(source: &str) -> impl Iterator<Item = Token> + '_ {
 mod test {
     use super::{KeywordKind::*, Kind::*, *};
 
-    fn assert_equality(input: &str, expected: impl IntoIterator<Item = (usize, Kind)>) {
+    fn check(input: &str, expected: impl IntoIterator<Item = (usize, Kind)>) {
         // Asserting element-wise results in cleaner error messages.
         for (actual, expected) in tokenize(input).zip(expected) {
             assert_eq!(actual, Token::new(expected.0, expected.1));
@@ -223,7 +223,7 @@ mod test {
     #[test]
     fn empty() {
         let input = "";
-        assert_equality(input, std::iter::empty())
+        check(input, std::iter::empty())
     }
 
     #[test]
@@ -242,14 +242,14 @@ mod test {
             (9, Star),
             (10, Plus),
         ];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
     fn whitespace() {
         let input = " ( ) .\n  *";
         let expected = [(1, LeftParen), (3, RightParen), (5, Dot), (9, Star)];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
@@ -266,49 +266,49 @@ mod test {
             (10, LessEqual),
             (12, Greater),
         ];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
     fn number() {
         let input = "123 (534)";
         let expected = [(0, Number), (4, LeftParen), (5, Number), (8, RightParen)];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
     fn terminated_string() {
         let input = " \"());3.=\"! ";
         let expected = [(1, String), (10, Bang)];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
     fn unterminated_string() {
         let input = " !\")(;3.=";
         let expected = [(1, Bang), (2, Error)];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
     fn unrecognized_character() {
         let input = "\\%";
         let expected = [(0, Error), (1, Error)];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
     fn comment() {
         let input = "#abc\n#1%\n32";
         let expected = [(0, Comment), (5, Comment), (9, Number)];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
     fn identifier() {
         let input = "these are identifiers";
         let expected = [(0, Identifier), (6, Identifier), (10, Identifier)];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
@@ -333,14 +333,14 @@ mod test {
             (70, Keyword(Print)),
             (76, Keyword(Return)),
         ];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
     fn identifier_or_keyword() {
         let input = "fidentifier tidentifier uidentifier";
         let expected = [(0, Identifier), (12, Identifier), (24, Identifier)];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 
     #[test]
@@ -352,6 +352,6 @@ mod test {
             (7, Identifier),
             (14, Identifier),
         ];
-        assert_equality(input, expected)
+        check(input, expected)
     }
 }
