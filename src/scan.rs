@@ -15,6 +15,16 @@ enum Kind {
     // Literals
     Number, String, Identifier,
 
+    Keyword(KeywordKind),
+
+    Comment,
+
+    Error,
+}
+
+#[rustfmt::skip]
+#[derive(Debug, PartialEq)]
+enum KeywordKind {
     // Boolean logic-related keywords
     And, Or, True, False,
     If, Else, For, While,
@@ -24,10 +34,6 @@ enum Kind {
 
     // Function-related keywords
     Function, Print, Return,
-
-    Comment,
-
-    Error,
 }
 
 #[derive(Debug, PartialEq)]
@@ -92,7 +98,7 @@ impl<'source> Tokens<'source> {
     }
 
     fn identifier_or_keyword(&mut self, current: char) -> Kind {
-        use Kind::*;
+        use KeywordKind::*;
         match current {
             'a' => self.try_keyword("nd", And),
             'c' => self.try_keyword("lass", Class),
@@ -120,7 +126,7 @@ impl<'source> Tokens<'source> {
         }
     }
 
-    fn try_keyword(&mut self, keyword: &str, keyword_kind: Kind) -> Kind {
+    fn try_keyword(&mut self, keyword: &str, kind: KeywordKind) -> Kind {
         let identifier_starts_with_keyword =
             keyword.chars().all(|expected| self.next_matches(expected));
         let keyword_is_not_prefix_of_identifier = self
@@ -130,7 +136,7 @@ impl<'source> Tokens<'source> {
             .is_none();
 
         if identifier_starts_with_keyword && keyword_is_not_prefix_of_identifier {
-            keyword_kind
+            Kind::Keyword(kind)
         } else {
             self.identifier()
         }
@@ -183,7 +189,7 @@ pub fn tokenize(source: &str) -> impl Iterator<Item = Token> + '_ {
 
 #[cfg(test)]
 mod test {
-    use super::{Kind::*, *};
+    use super::{KeywordKind::*, Kind::*, *};
 
     fn assert_equality(
         actual: impl Iterator<Item = Token>,
@@ -302,22 +308,22 @@ mod test {
             "and or true false if else for while class nil super this var function print return";
         let actual = tokenize(source);
         let expected = [
-            (0, And),
-            (4, Or),
-            (7, True),
-            (12, False),
-            (18, If),
-            (21, Else),
-            (26, For),
-            (30, While),
-            (36, Class),
-            (42, Nil),
-            (46, Super),
-            (52, This),
-            (57, Var),
-            (61, Function),
-            (70, Print),
-            (76, Return),
+            (0, Keyword(And)),
+            (4, Keyword(Or)),
+            (7, Keyword(True)),
+            (12, Keyword(False)),
+            (18, Keyword(If)),
+            (21, Keyword(Else)),
+            (26, Keyword(For)),
+            (30, Keyword(While)),
+            (36, Keyword(Class)),
+            (42, Keyword(Nil)),
+            (46, Keyword(Super)),
+            (52, Keyword(This)),
+            (57, Keyword(Var)),
+            (61, Keyword(Function)),
+            (70, Keyword(Print)),
+            (76, Keyword(Return)),
         ];
         assert_equality(actual, expected)
     }
