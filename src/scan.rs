@@ -18,7 +18,6 @@ impl<'source> Tokens<'source> {
             '-' => Minus,
             '*' => Star,
             '/' => Slash,
-            '#' => self.comment(),
             '=' if self.next_matches('=') => EqualEqual,
             '=' => Equal,
             '>' if self.next_matches('=') => GreaterEqual,
@@ -111,9 +110,8 @@ impl<'source> Tokens<'source> {
         }
     }
 
-    fn comment(&mut self) -> Kind {
+    fn comment(&mut self) {
         self.next_until_eq('\n');
-        Kind::Comment
     }
 }
 
@@ -121,9 +119,14 @@ impl<'source> Iterator for Tokens<'source> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
-        self.char_indices
-            .find(|(_, c)| !c.is_whitespace())
-            .map(|(i, c)| Token::new(i, self.scan_token(c)))
+        loop {
+            let (index, c) = self.char_indices.find(|(_, c)| !c.is_whitespace())?;
+            if c == '#' {
+                self.comment()
+            } else {
+                return Some(Token::new(index, self.scan_token(c)));
+            }
+        }
     }
 }
 
@@ -227,7 +230,7 @@ mod test {
     #[test]
     fn comment() {
         let input = "#abc\n#1%\n32";
-        let expected = vec![(0, Comment), (5, Comment), (9, Number)];
+        let expected = vec![(9, Number)];
         check(input, expected)
     }
 

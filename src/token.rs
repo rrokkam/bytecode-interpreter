@@ -19,8 +19,6 @@ pub enum Kind {
 
     Keyword(KeywordKind),
 
-    Comment,
-
     Error,
 }
 
